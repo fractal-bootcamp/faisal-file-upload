@@ -50,13 +50,17 @@ const App = () => {
       const response = await axios.post(`${SERVER_URL}/upload`, formData, {
         headers: {
           // Allow common image file types
-          'Content-Type': 'multipart/form-data'
+          //'Content-Type': 'multipart/form-data'
         },
         timeout: 30000,
       });
 
       if (response.status === 200) {
+        // Set upload success and clear after 3 seconds
         setUploadSuccess(true);
+        setTimeout(() => {
+          setUploadSuccess(false);
+        }, 3000);
         setFile(null);
       }
     } catch (error: unknown) {
@@ -95,6 +99,7 @@ const App = () => {
               </div>
               <input
                 type="file"
+                accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
               />
