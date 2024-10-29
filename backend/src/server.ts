@@ -9,6 +9,11 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3001;
 
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
 const s3 = new S3({
     region: 'us-east-1',
     credentials: {
@@ -33,19 +38,13 @@ const upload = multer({
     }),
 });
 
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-
 app.get("/", async (_req, res) => {
     const data = await s3.listBuckets()
 
     res.send({ buckets: data });
 });
 
+// get image from s3
 app.get("/image/:id", (req, res) => {
     const params = {
         Bucket: process.env.AWS_S3_BUCKET || '',
@@ -66,6 +65,7 @@ app.get("/image/:id", (req, res) => {
     })
 })
 
+// upload image to s3
 app.post("/upload", upload.single("file"), async (req, res) => {
     // req.file is the file that was uploaded
     console.log(req.file);
