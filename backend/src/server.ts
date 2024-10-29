@@ -59,7 +59,13 @@ app.get("/image/:id", (req, res) => {
             return;
         }
 
-        res.set('Content-Type', 'image/jpeg');
+        // Set Content-Type based on the file extension from the key
+        const contentType = key.toLowerCase().endsWith('.png') ? 'image/png'
+            : key.toLowerCase().endsWith('.gif') ? 'image/gif'
+                : key.toLowerCase().endsWith('.webp') ? 'image/webp'
+                    : key.toLowerCase().endsWith('.svg') ? 'image/svg+xml'
+                        : 'image/jpeg'; // Default to jpeg for jpg/jpeg/unknown
+        res.set('Content-Type', contentType);
         res.set('Content-Length', data.ContentLength);
         res.send(data);
     })
