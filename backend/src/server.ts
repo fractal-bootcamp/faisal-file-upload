@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { S3 } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
+import { clerkMiddleware, getAuth, clerkClient } from "@clerk/express";
+import { authMiddleware } from "./middleware";
 
 dotenv.config();
 
@@ -13,6 +15,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(clerkMiddleware());
 
 const s3 = new S3({
     region: 'us-east-1',
@@ -44,8 +47,17 @@ app.get("/", async (_req, res) => {
     res.send({ buckets: data });
 });
 
+app.get("/api/protected", authMiddleware, async (req, res) => {
+    // Get user ID from auth context
+    const { userId } = getAuth(req);
+    // Fetch user details from Clerk
+    const user = await clerkClient.users.getUser(userId ?? '');
+    // Send response without return statement
+    res.json(user);
+});
+
 // get image from s3
-app.get("/image/:id", (req, res) => {
+app.get("/api/image/:id", (req, res) => {
     const params = {
         Bucket: process.env.AWS_S3_BUCKET || '',
         Key: req.params.id,
@@ -72,7 +84,7 @@ app.get("/image/:id", (req, res) => {
 })
 
 // upload image to s3
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/api/upload", upload.single("file"), async (req, res) => {
     // req.file is the file that was uploaded
     console.log(req.file);
 

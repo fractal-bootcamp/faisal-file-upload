@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const SERVER_URL = 'http://localhost:3001'
+const SERVER_URL = 'http://localhost:3001/api'
 
 // Main App component for file upload functionality
 const App = () => {

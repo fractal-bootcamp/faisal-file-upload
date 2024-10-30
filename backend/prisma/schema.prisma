@@ -12,3 +12,56 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @unique @default(uuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  files       File[] // Files owned by the user
+  sharedFiles FileShare[] // Files shared with this user
+  sharedByMe  FileShare[] @relation("SharedBy") // Files shared by this user
+}
+
+model File {
+  id        String   @id @unique @default(uuid())
+  name      String
+  awsKey    String   @unique
+  awsUrl    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Owner relationship
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Sharing relationship
+  sharedWith FileShare[]
+}
+
+// New model for managing file sharing
+model FileShare {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now())
+
+  // File being shared
+  fileId String
+  file   File   @relation(fields: [fileId], references: [id])
+
+  // User who shared the file
+  sharedById String
+  sharedBy   User   @relation("SharedBy", fields: [sharedById], references: [id])
+
+  // User who received the share
+  sharedWithId String
+  sharedWith   User   @relation(fields: [sharedWithId], references: [id])
+
+  // Optional: Add permissions
+  canEdit Boolean? @default(false)
+
+  @@unique([fileId, sharedWithId]) // Prevent duplicate shares
+}
